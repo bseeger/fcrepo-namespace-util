@@ -19,3 +19,10 @@ location of that resource such as:
 java -Dfcrepo.home=/path/to/data -Dfcrepo.modeshape.configuration=file:/etc/fcrepo/repository.json -jar path/to/fcrepo-namespace-util.jar
 ```
 
+## Limitations
+
+This utility can operate on most userland-defined namespaces, but if a
+namespace has been used in an `rdf:type` triple, it no longer becomes
+possible to change the namespace prefix. This is due to a limitation in
+how Modeshape stores `rdf:type` triple values.
+
