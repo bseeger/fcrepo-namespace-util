@@ -1,24 +1,32 @@
+/*
+ * Copyright 2015 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.fcrepo.utils;
 
-import static java.util.Arrays.stream;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.fcrepo.kernel.modeshape.utils.NamespaceTools.getNamespaces;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Scanner;
 
 import javax.inject.Inject;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.NamespaceException;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.api.models.Container;
-import org.fcrepo.kernel.api.models.FedoraBinary;
-import org.fcrepo.kernel.api.models.FedoraResource;
-import org.fcrepo.kernel.api.services.NodeService;
 
 import org.slf4j.Logger;
 
@@ -40,9 +48,7 @@ public class NamespaceUtil {
     private SessionFactory sessionFactory;
 
     /**
-     * Migrate technical metadata.
-     * @param args If "dryrun" is passed as an argument, the utility will print out what would be done,
-     *             but no changes will be made.
+     * Start and run the namespace utility
      **/
     public static void main(final String[] args) {
         ConfigurableApplicationContext ctx = null;
@@ -64,7 +70,9 @@ public class NamespaceUtil {
      * Run the namespace change utility
      **/
     public void run() throws RepositoryException {
+        LOGGER.info("Starting namespace utility");
         prompt(sessionFactory.getInternalSession());
+        LOGGER.info("Stopping namespace utility");
     }
 
     private void prompt(final Session session) throws RepositoryException {
@@ -80,13 +88,14 @@ public class NamespaceUtil {
         final Scanner scan = new Scanner(System.in);
         if (scan.hasNextLine()) {
             final String prefix = scan.nextLine();
-
             if (namespaces.containsKey(prefix)) {
-                System.out.println("Enter a new prefix for the URI (or 'ctrl-d' to cancel): " + namespaces.get(prefix));
+                System.out.println("Enter a new prefix for the URI (or 'ctrl-d' to cancel): " +
+                        namespaces.get(prefix));
                 if (scan.hasNextLine()) {
                     final String newPrefix = scan.nextLine();
                     try {
-                        session.getWorkspace().getNamespaceRegistry().registerNamespace(newPrefix, namespaces.get(prefix));
+                        session.getWorkspace().getNamespaceRegistry().registerNamespace(newPrefix,
+                                namespaces.get(prefix));
                         session.save();
                     } catch (final NamespaceException ex) {
                         System.out.println("Could not change prefix (" + prefix + "): " + ex.getMessage());
@@ -96,8 +105,6 @@ public class NamespaceUtil {
                 System.out.println("Invalid prefix: " + prefix);
             }
             prompt(session);
-        } else {
-            System.out.println("Goodbye");
         }
     }
 }

@@ -13,11 +13,20 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>fcrepo-namespace-util</name>
-  <url>http://maven.apache.org</url>
+  <name>Fedora Namespace Utility</name>
+  <description>Utility for manipulating the namespace prefixes for a Fedora Repository</description>
+  <url>http://fcrepo.org</url>
+
+  <organization>
+    <name>DuraSpace, Inc.</name>
+    <url>http://www.duraspace.org/</url>
+  </organization>
+
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <project.copyrightYear>2015</project.copyrightYear>
     <fcrepo.version>4.5.1</fcrepo.version>
     <jcr.version>2.0</jcr.version>
     <modeshape.version>4.5.0.Final</modeshape.version>
@@ -146,6 +155,20 @@
       </resource>
     </resources>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+      </plugin>
+
       <plugin>
         <artifactId>maven-remote-resources-plugin</artifactId>
         <executions>
