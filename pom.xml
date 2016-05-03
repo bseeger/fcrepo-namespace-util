@@ -36,6 +36,9 @@
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <httpclient.version>4.3.3</httpclient.version>
     <httpcomponents.version>4.3.2</httpcomponents.version>
+    <jdbc.c3p0.version>0.9.5.2</jdbc.c3p0.version>
+    <jdbc.mysql.version>5.1.38</jdbc.mysql.version>
+    <jdbc.postgres.version>9.1-901-1.jdbc4</jdbc.postgres.version>
   </properties>
 
   <dependencies>
@@ -75,12 +78,34 @@
       <artifactId>infinispan-commons</artifactId>
       <version>${infinispan.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.infinispan</groupId>
       <artifactId>infinispan-cachestore-leveldb</artifactId>
       <version>${infinispan.version}</version>
     </dependency>
+
+    <!-- JDBC dependencies -->
+    <dependency>
+      <groupId>com.mchange</groupId>
+      <artifactId>c3p0</artifactId>
+      <version>${jdbc.c3p0.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>${jdbc.mysql.version}</version>
+    </dependency>
+    <dependency>
+    <groupId>postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>${jdbc.postgres.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-cachestore-jdbc</artifactId>
+      <version>${infinispan.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
