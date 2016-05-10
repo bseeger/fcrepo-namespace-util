@@ -39,6 +39,7 @@
     <jdbc.c3p0.version>0.9.5.2</jdbc.c3p0.version>
     <jdbc.mysql.version>5.1.38</jdbc.mysql.version>
     <jdbc.postgres.version>9.1-901-1.jdbc4</jdbc.postgres.version>
+    <yaml.version>1.17</yaml.version>
   </properties>
 
   <dependencies>
@@ -83,7 +84,11 @@
       <artifactId>infinispan-cachestore-leveldb</artifactId>
       <version>${infinispan.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>${yaml.version}</version>
+    </dependency>
     <!-- JDBC dependencies -->
     <dependency>
       <groupId>com.mchange</groupId>

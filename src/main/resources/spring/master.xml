@@ -19,6 +19,8 @@
 
   <bean class="org.fcrepo.http.commons.session.SessionFactory"/>
 
+  <bean class="org.yaml.snakeyaml.Yaml"/>
+
   <bean id="connectionManager" class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager" />
 
 </beans>

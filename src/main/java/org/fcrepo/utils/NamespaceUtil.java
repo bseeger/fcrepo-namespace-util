@@ -27,9 +27,11 @@ import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.NamespaceException;
-import javax.jcr.NamespaceRegistry;
+//import javax.jcr.NamespaceRegistry;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+
+import org.yaml.snakeyaml.Yaml;
 
 import org.slf4j.Logger;
 
@@ -50,6 +52,9 @@ public class NamespaceUtil {
     @Inject
     private SessionFactory sessionFactory;
 
+    @Inject
+    private Yaml yaml;
+
     /**
      * Start and run the namespace utility
      **/
@@ -63,7 +68,7 @@ public class NamespaceUtil {
         } catch (RepositoryException ex) {
             ex.printStackTrace();
         } catch (FileNotFoundException ex) {
-            System.out.println("RDF Prefix file not found.");
+            System.out.println("Prefix file not found.");
             ex.printStackTrace();
         } finally {
             if (null != ctx) {
@@ -75,39 +80,85 @@ public class NamespaceUtil {
     /**
      * Run the namespace change utility
      **/
-    public void run(final String prefixFilename) throws RepositoryException, FileNotFoundException {
+    public void run(final String prefixFilename) throws RepositoryException,
+                                                     FileNotFoundException {
         LOGGER.info("Starting namespace utility");
         final Session session = sessionFactory.getInternalSession();
         if (prefixFilename != null) {
-          LOGGER.info("Importing prefixes from file: {}", prefixFilename);
-          loadPrefixFile(session, prefixFilename);
+            LOGGER.info("Importing prefixes from file: {}", prefixFilename);
+            loadPrefixFile(session, prefixFilename);
         }
         prompt(session);
         LOGGER.info("Stopping namespace utility");
     }
 
-    private void loadPrefixFile(final Session session, final String prefixFile)
-                   throws RepositoryException, FileNotFoundException  {
+    private Boolean updatePrefix(final Session session, final Map<String,String> namespaces, final String prefix,
+                                 final String uri) {
 
-        final Scanner scan = new Scanner(new FileInputStream(prefixFile));
-        final NamespaceRegistry registry = session.getWorkspace().getNamespaceRegistry();
+        LOGGER.info("Adding prefix {}: {}",prefix, uri);
 
-        System.out.println("#################### Importing Prefixes #########################");
+        try {
+            session.getWorkspace().getNamespaceRegistry().registerNamespace(prefix, uri);
+            session.save();
 
-        while (scan.hasNextLine()) {
-            final String[] split = scan.nextLine().split(":", 2);
-            final String prefix = split[0].trim();
-            final String value = split[1].trim();
-
-            System.out.println("Adding prefix " + prefix + ": " + value);
-            try {
-                registry.registerNamespace(prefix, value);
-                session.save();
-            } catch (final NamespaceException ex) {
-                System.out.println("Could not create prefix (" + prefix + "): " + ex.getMessage());
-            }
+            LOGGER.info("Prefix {} successfully update", prefix);
+            return true;
+        } catch (final NamespaceException ex) {
+            LOGGER.info("NamespaceException occured while updating prefix {}: {}", prefix,
+                ex.getMessage());
+            return false;
+        } catch (final RepositoryException ex) {
+            LOGGER.info("RepositoryException occured while updating prefix {}: {}", prefix,
+                ex.getMessage());
+            return false;
         }
     }
+
+    private void loadPrefixFile(final Session session, final String prefixFile) throws RepositoryException,
+                                                                    FileNotFoundException  {
+
+        final Map<String,String> prefixes = (Map<String,String>)yaml.load(new FileInputStream(prefixFile));
+        final Map<String, String> namespaces = getNamespaces(session);
+
+        System.out.println("\n\n#################### Importing Prefixes #########################");
+        prefixes.forEach((prefix, v) -> {
+            String value = v;
+            Boolean replace = false;
+            final Boolean exists = namespaces.containsKey(prefix);
+            if (exists) {
+                value = namespaces.get(prefix);
+
+                System.out.println("System already contains URI \"" + namespaces.get(prefix) +
+                                   "\" with prefix \"" + prefix + "\"");
+                System.out.println("Do you want to replace the prefix with \"" + prefix + "\"? (Y/n): ");
+
+            } else {
+              System.out.println("Are you sure you want to add prefix \"" + prefix + "\" with value: \"" +
+                                 value + "\"? (Y/n): ");
+            }
+
+            final Scanner scanIn = new Scanner(System.in);
+            final String response = scanIn.nextLine().trim();
+
+            // anything other then a Y/y or blank will result in the changes NOT happening.
+            if (response.trim().toLowerCase().equals("y") || response.trim().toLowerCase().isEmpty()) {
+                replace = true;
+            }
+
+            if (replace) {
+               if (updatePrefix(session, namespaces, prefix, value)) {
+                  System.out.println("Prefix \"" + prefix + "\" (" + value + ") " +
+                      (exists ? "edited" : "added") + " successfully.");
+               } else {
+                  System.out.println("Failed to edit \"" + prefix + "\": <" + value + ">.");
+               }
+            } else {
+                System.out.println("Prefix \"" + prefix + "\" skipped.");
+            }
+            System.out.println();
+        });
+    }
+
 
     private void prompt(final Session session) throws RepositoryException {
         final Map<String, String> namespaces = getNamespaces(session);
@@ -127,12 +178,8 @@ public class NamespaceUtil {
                         namespaces.get(prefix));
                 if (scan.hasNextLine()) {
                     final String newPrefix = scan.nextLine();
-                    try {
-                        session.getWorkspace().getNamespaceRegistry().registerNamespace(newPrefix,
-                                namespaces.get(prefix));
-                        session.save();
-                    } catch (final NamespaceException ex) {
-                        System.out.println("Could not change prefix (" + prefix + "): " + ex.getMessage());
+                    if (!updatePrefix(session, namespaces, newPrefix, namespaces.get(prefix))) {
+                        System.out.println("Could not change prefix (" + prefix + ")");
                     }
                 }
             } else {
@@ -142,4 +189,3 @@ public class NamespaceUtil {
         }
     }
 }
-
